@@ -6,18 +6,16 @@
 #include <fstream>  
 #include<sstream>
 #include<vector>
-
 using namespace std;
 
-GLuint vShader, fShader;//顶点着色器对象
+GLuint vShader, fShader;
 float positionData[] = {
 	-0.5, 0.5, 0,
 	0.5, 0.5, 0,
 	0.5, -0.5, 0,
 	-0.5, -0.5, 0,
-
 };
-GLuint vaoHandle;//vertex array object
+GLuint vaoHandle;
 GLuint programHandle;
 void initShader(const char *VShaderFile, const char *FShaderFile)
 {
@@ -30,11 +28,10 @@ void initShader(const char *VShaderFile, const char *FShaderFile)
 		"uniform mat4x4 TransMat;											\n"
 		"void main(void)                                                    \n"
 		"{                                                                  \n"
-		"	vec4 temp = vec4(0.2,0.2,0.2,0.0);    							\n"
+		"	vec4 temp = vec4(0.0,0.2,0.2,0.0);    							\n"
 		"                                                                   \n"
 		"    gl_Position =  position + temp;							    \n"
 		"	 position2   =  position + 0.8;									\n"
-		//	"	 gl_Position = position2;										\n"
 		"}                                                                 \n"
 	};
 
@@ -63,38 +60,30 @@ void initShader(const char *VShaderFile, const char *FShaderFile)
 	{
 		"#version 420 core                                                                    \n"
 		"                                                                                     \n"
-		"layout (quads,equal_spacing) in;                                                                   \n"
+		"layout (quads,equal_spacing) in;                                                      \n"
 		"                                                                                     \n"
 		"void main(void)                                                                      \n"
 		"{                                                                                    \n"
-		"   vec4 p1 = mix(gl_in[0].gl_Position, gl_in[3].gl_Position, gl_TessCoord.x);    \n"
-		"   vec4 p2 = mix(gl_in[12].gl_Position, gl_in[15].gl_Position, gl_TessCoord.x);    \n"
-		"    gl_Position = mix(p1, p2, gl_TessCoord.y);                                   \n"
-		"	gl_Position = vec4(gl_TessCoord.x , gl_TessCoord.y , 1.0, 1.0); \n"
-		//	"  gl_in[2].gl_Position=gl_in[3].gl_Position;\n"
-		//		" int i =12;\n"
-		//	"	   gl_Position =vec4(gl_TessCoord.x+gl_in[i].gl_Position.x,gl_TessCoord.y+gl_in[i].gl_Position.y,1.0,1.0);\n"
-		//"	   gl_Position =vec4(gl_TessCoord.x+0.5,gl_TessCoord.y-0.5,1.0,1.0);\n"
+		"   vec4 p1 = mix(gl_in[0].gl_Position,	 gl_in[3].gl_Position,  gl_TessCoord.x);      \n"
+		"   vec4 p2 = mix(gl_in[12].gl_Position, gl_in[15].gl_Position, gl_TessCoord.x);      \n"
+		"   gl_Position = mix(p1, p2, gl_TessCoord.y);										  \n"
+		"	gl_Position = vec4(gl_TessCoord.x , gl_TessCoord.y , 1.0, 1.0);                   \n"
 		"}                                                                                    \n"
 	};
-
-
-
-
 	static const char * fs_source[] =
 	{
 		"#version 420 core                                                  \n"
-
 		"in vec3 color;														\n"
 		"out vec4 color2;                                                   \n"
 		"                                                                   \n"
 		"void main(void)                                                    \n"
 		"{                                                                  \n"
-		"    color2 = vec4(1.0,0.0,0.0,0.0);                                            \n"
+		"    color2 = vec4(1.0,0.0,0.0,0.0);                                \n"
 		"	 																\n"
 		"}                                                                  \n"
 	};
 	programHandle = glCreateProgram();
+
 	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vs, 1, vs_source, NULL);
 	glCompileShader(vs);
@@ -121,18 +110,16 @@ void initShader(const char *VShaderFile, const char *FShaderFile)
 	GLuint projMat = glGetUniformLocation(programHandle, "projMat");
 	GLuint TransMat = glGetUniformLocation(programHandle, "TransMat");
 	vmath::mat4 TransMatrix = vmath::lookat(vmath::vec3(0.0f, 0.0f, 0.0f),
-		vmath::vec3(0.02f, 0.0f, -1.0f),
-		vmath::vec3(0.0f, 1.0f, 0.0f)
-		)*
-		vmath::translate(0.0f, 0.0f, 0.0f) *
-		vmath::rotate(0.0f, 0.0f, 0.0f, 0.0f) *
-		vmath::mat4::identity();
+							  vmath::vec3(0.02f, 0.0f, -1.0f),
+							  vmath::vec3(0.0f, 1.0f, 0.0f)) *
+							  vmath::translate(0.0f, 0.0f, 0.0f) *
+							  vmath::rotate(0.0f, 0.0f, 0.0f, 0.0f) *
+							  vmath::mat4::identity();
 	glUniformMatrix4fv(TransMat, 1, GL_FALSE, TransMatrix);
 }
 
 void initVBO()
 {
-	//OBJspace::OBJreader sore("D:\\sore.ob2j");
 	GLuint vboHandles[2];
 	glGenBuffers(2, vboHandles);
 	GLuint positionBufferHandle = vboHandles[0];
@@ -141,33 +128,23 @@ void initVBO()
 	glBindVertexArray(vaoHandle);
 	glBindBuffer(GL_ARRAY_BUFFER, positionBufferHandle);
 	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), positionData, GL_STATIC_DRAW);
-	
+
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte *)NULL);
 	glBindBuffer(GL_ARRAY_BUFFER, colorBufferHandle);
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-	//GLuint m_transformFeedback;
-	//glGenTransformFeedbacks(1, &m_transformFeedback);
 	const char * var[] = { "position2" };
 	GLuint buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, buffer);
 	glBufferData(GL_TRANSFORM_FEEDBACK_BUFFER, sizeof(positionData), nullptr, GL_DYNAMIC_DRAW);
-	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buffer);
-	glTransformFeedbackVaryings(programHandle,
-		1,
-		var,
-		GL_INTERLEAVED_ATTRIBS);
-	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buffer);
-	//glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, m_transformFeedback);
+	glTransformFeedbackVaryings(programHandle, 1, var, GL_INTERLEAVED_ATTRIBS);	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, buffer);
 	glLinkProgram(programHandle);
-	glUseProgram(programHandle);
 }
 
 void init()
 {
-	//初始化glew扩展库
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
@@ -180,17 +157,19 @@ void init()
 
 void display()
 {
+	//glViewport(0, 0, 300, 300);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glBindVertexArray(vaoHandle);
 	cout << "hey" << endl;
-	glBeginTransformFeedback(GL_POINTS);
-	glDrawArrays(GL_POINTS, 0, 4);
-	glEndTransformFeedback();
-		void * ptr = glMapBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, GL_READ_ONLY);	float *az = new float[100];
-	memcpy(az, ptr, 3*4*sizeof(float));
-	for (int i = 0; i < 3 * 4 ; i++){
+	glBeginTransformFeedback(GL_TRIANGLES);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glEndTransformFeedback();	void * ptr = glMapBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, GL_READ_ONLY);	float *az = new float[100];
+	memcpy(az, ptr, 3 * 4 * sizeof(float));
+	for (int i = 0; i < 3 * 4; i++){
 		cout << az[i] << endl;
 	}
+	glUnmapBuffer(GL_TRANSFORM_FEEDBACK_BUFFER);
+	delete az;
 	cout << "hey2" << endl;
 
 	glutSwapBuffers();
@@ -218,7 +197,6 @@ int main(int argc, char** argv)
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboard);
 	glutMainLoop();
-
 	return 0;
 }
 
